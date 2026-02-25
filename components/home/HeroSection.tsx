@@ -184,7 +184,7 @@ const HeroSection = () => {
                 <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors duration-500"></div>
               </div>
               <h4 className="font-bold text-xs sm:text-sm text-white truncate">{product.name}</h4>
-              <span className="font-black text-primary text-xs sm:text-sm">{product.price}</span>
+              <span className="font-black text-white text-xs sm:text-sm">{product.price}</span>
             </div>
           ))}
         </div>
