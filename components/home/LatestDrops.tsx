@@ -87,11 +87,11 @@ const LatestDrops = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-12 lg:mb-16 gap-4 sm:gap-6 animate-on-scroll">
         <div>
           <h3 className="text-3xl sm:text-4xl font-black tracking-tighter uppercase mb-2 sm:mb-4">Latest Drops</h3>
-          <p className="text-slate-500 text-sm sm:text-base font-medium">Seasonal essentials designed for the modern auteur.</p>
+          <p className="text-slate-300 text-sm sm:text-base font-medium">Seasonal essentials designed for the modern auteur.</p>
         </div>
         <Link 
           href="/collections" 
-          className="group flex items-center gap-2 font-bold text-sm uppercase tracking-widest text-primary border-b-2 border-primary pb-1 w-fit hover:gap-3 transition-all"
+          className="group flex items-center gap-2 font-bold text-sm uppercase tracking-widest text-gray-400 border-b-2 border-primary pb-1 w-fit hover:gap-3 transition-all"
         >
           View All Collections
           <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
@@ -131,7 +131,7 @@ const LatestDrops = () => {
                   {product.category}
                 </p>
               </div>
-              <span className="font-black text-primary text-base sm:text-lg">{product.price}</span>
+              <span className="font-black text-gray-300 text-base sm:text-lg">{product.price}</span>
             </div>
           </div>
         ))}
