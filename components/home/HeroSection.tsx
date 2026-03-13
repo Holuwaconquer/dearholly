@@ -179,7 +179,29 @@ const HeroSection = () => {
           </div>
         </div>
 
-
+        {/* Featured Products */}
+        <div 
+          ref={productsRef}
+          className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-8 sm:mt-12 lg:mt-16"
+        >
+          {products.map((product, index) => (
+            <div
+              key={index}
+              className="group cursor-pointer animate-on-scroll"
+              style={{ transitionDelay: `${index * 0.1}s` }}
+            >
+              <div className="relative aspect-[3/4] overflow-hidden mb-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg">
+                <div 
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+                  style={{ backgroundImage: `url(${product.image})` }}
+                />
+                <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors duration-500"></div>
+              </div>
+              <h4 className="font-bold text-xs sm:text-sm text-white truncate">{product.name}</h4>
+              <span className="font-black text-primary text-xs sm:text-sm">{product.price}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Scroll indicator */}
