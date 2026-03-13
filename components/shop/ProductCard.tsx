@@ -87,7 +87,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <p className="text-slate-400 text-sm font-medium">{product.category}</p>
         </div>
         <div className="text-right">
-          <p className="text-primary font-black">{product.price}</p>
+          <p className="text-primary font-black">₦{Number(product.price).toLocaleString()}</p>
           {product.originalPrice && (
             <p className="text-slate-400 text-xs line-through">{product.originalPrice}</p>
           )}

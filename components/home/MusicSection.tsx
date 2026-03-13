@@ -41,7 +41,8 @@ const MusicSection = () => {
       action: 'Open Profile',
       color: '#1DB954',
       logo: 'https://www.vectorlogo.zone/logos/spotify/spotify-icon.svg',
-      hoverColor: 'group-hover:bg-[#1DB954]'
+      hoverColor: 'group-hover:bg-[#1DB954]',
+      link: 'https://open.spotify.com/artist/2REObag4jzlespV0dJ1FF3?si=CqQxf508Q-2ojnQQh0HRiA'
     },
     {
       name: 'Apple Music',
@@ -49,7 +50,17 @@ const MusicSection = () => {
       action: 'Open Profile',
       color: '#FA243C', 
       logo: 'https://cdn.brandfetch.io/id_yBTuraI/theme/light/symbol.svg?c=1dxbfHSJFAPEGdCLU4o5B',
-      hoverColor: 'group-hover:bg-[#FA243C]'
+      hoverColor: 'group-hover:bg-[#FA243C]',
+      link: 'https://music.apple.com/us/artist/dearholly/1868404640'
+    },
+    {
+      name: 'Youtube Music',
+      description: 'Raw demos, behind-the-scenes audio, and exclusive beats.',
+      action: 'Open Profile',   
+      color: '#FFA200',
+      logo: 'https://cdn.iconscout.com/icon/free/png-512/free-youtube-music-icon-svg-download-png-3357685.png?f=webp&w=256',
+      hoverColor: 'group-hover:bg-[#FFA200]',
+      link: 'https://music.youtube.com/channel/UCpHK_o8QZ1EeIkwMloOrS8Q?si=34dq2Ql2aiQCInrC'
     },
     {
       name: 'Audiomack',
@@ -57,7 +68,8 @@ const MusicSection = () => {
       action: 'Open Profile',   
       color: '#FFA200',
       logo: 'https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/audiomack-icon.png',
-      hoverColor: 'group-hover:bg-[#FFA200]'
+      hoverColor: 'group-hover:bg-[#FFA200]',
+      link: ''
     }
   ]
 
@@ -74,7 +86,8 @@ const MusicSection = () => {
         {musicPlatforms.map((platform, index) => (
           <Link
             key={index}
-            href="#"
+            href={platform.link}
+            target='_blank'
             className="group relative bg-white/10 backdrop-blur-sm border border-white/20 p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-xl hover:bg-white/20 transition-all duration-500 hover:-translate-y-2 flex flex-col items-center text-center animate-on-scroll"
           >
             <div 

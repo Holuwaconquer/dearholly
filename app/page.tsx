@@ -7,6 +7,7 @@ import HeroSection from '@/components/home/HeroSection'
 import LatestDrops from '@/components/home/LatestDrops'
 import NarrativeSection from '@/components/home/NarrativeSection'
 import MusicSection from '@/components/home/MusicSection'
+import AnnouncementBanner from '@/components/home/AnnouncementBanner'
 
 export default function Home() {
   useEffect(() => {
@@ -30,6 +31,7 @@ export default function Home() {
   return (
     <>
       <Navbar />
+      <AnnouncementBanner />
       <main className="pt-20">
         <HeroSection />
         <LatestDrops />

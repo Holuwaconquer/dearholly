@@ -2,12 +2,23 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
+import { useCart } from '@/context/CartContext'
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, token, logout } = useAuth()
+  const { getTotalItems } = useCart()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,10 +28,18 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  const handleLogout = () => {
+    logout()
+    setUserMenuOpen(false)
+    router.push('/')
+  }
+
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '/shop', label: 'Shop' },
     { href: '/about', label: 'Our Story' },
+    { href: '/#', label: 'Music' },
+    { href: '/shop', label: 'Collection' },
+    { href: '/community', label: 'Community' },
   ]
 
   const isActive = (path: string) => pathname === path
@@ -38,16 +57,16 @@ const Navbar = () => {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
             <div className="text-primary transition-transform duration-300 group-hover:rotate-12">
-              <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                <path clipRule="evenodd" d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" fill="currentColor" fillRule="evenodd" />
-              </svg>
+              <div className='w-[70px] h-[70px] rounded-full overflow-hidden border-2 border-white/20'>
+                <img src="/android-chrome-192x192.png" alt="Logo" className="w-full h-full object-cover" />
+              </div>
             </div>
-            <div className="flex flex-col">
-              <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-tighter uppercase text-white transition-colors group-hover:text-primary">
-                DearHolly
-              </h1>
-              <p className="text-[10px] sm:text-xs font-medium text-white/70 -mt-1">wears by Amaru Paul Odiana</p>
-            </div>
+              <div className="flex flex-col">
+                <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-tighter uppercase text-white transition-colors group-hover:text-primary">
+                  DearHolly
+                </h1>
+                <p className="text-[10px] sm:text-xs font-medium text-white/70 -mt-1">wears by Amaru Paul Odiana</p>
+              </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -76,15 +95,64 @@ const Navbar = () => {
             
             <Link href="/cart" className="relative p-1.5 sm:p-2 hover:bg-primary/20 rounded-full transition-all duration-300 hover:scale-110 text-white/90 hover:text-primary group">
               <span className="material-symbols-outlined text-xl sm:text-2xl">shopping_bag</span>
-              <span className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-              <span className="absolute -top-1 -right-1 bg-primary text-white text-[8px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                3
-              </span>
+              {getTotalItems() > 0 && (
+                <>
+                  <span className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                  <span className="absolute -top-1 -right-1 bg-primary text-white text-[8px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full">
+                    {getTotalItems()}
+                  </span>
+                </>
+              )}
             </Link>
 
-            <Link href="/login" className="p-1.5 sm:p-2 hover:bg-primary/20 rounded-full transition-all duration-300 hover:scale-110 text-white/90 hover:text-primary hidden sm:block">
-              <span className="material-symbols-outlined text-xl sm:text-2xl">person</span>
-            </Link>
+            {/* User Menu or Login */}
+            {mounted && (
+              token && user ? (
+                <div className="relative hidden sm:block">
+                  <button 
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="flex items-center gap-2 p-1.5 sm:p-2 hover:bg-primary/20 rounded-full transition-all duration-300 hover:scale-110 text-white/90 hover:text-primary"
+                  >
+                    <span className="material-symbols-outlined text-xl sm:text-2xl">person</span>
+                    <span className="text-sm font-semibold hidden md:inline text-white/90">{user.firstName}</span>
+                  </button>
+                  
+                  {/* Dropdown Menu */}
+                  {userMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-primary/10 py-2 z-50 animate-slide-down">
+                      <Link 
+                        href="/dashboard" 
+                        className="flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <span className="material-symbols-outlined">dashboard</span>
+                        <span className="font-medium">Dashboard</span>
+                      </Link>
+                      <Link 
+                        href="/dashboard/profile" 
+                        className="flex items-center gap-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <span className="material-symbols-outlined">edit</span>
+                        <span className="font-medium">Profile</span>
+                      </Link>
+                      <div className="border-t border-primary/10 my-2"></div>
+                      <button 
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full transition-all"
+                      >
+                        <span className="material-symbols-outlined">logout</span>
+                        <span className="font-medium">Logout</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link href="/login" className="p-1.5 sm:p-2 hover:bg-primary/20 rounded-full transition-all duration-300 hover:scale-110 text-white/90 hover:text-primary hidden sm:block">
+                  <span className="material-symbols-outlined text-xl sm:text-2xl">person</span>
+                </Link>
+              )
+            )}
 
             {/* Mobile menu button */}
             <button 
@@ -119,20 +187,42 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/login"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="px-4 py-3 text-sm font-semibold uppercase tracking-widest transition-all duration-300 hover:bg-primary/20 hover:pl-6 rounded-lg text-white/90 hover:text-primary sm:hidden"
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="px-4 py-3 text-sm font-semibold uppercase tracking-widest transition-all duration-300 hover:bg-primary/20 hover:pl-6 rounded-lg text-white/90 hover:text-primary sm:hidden"
-            >
-              Register
-            </Link>
+            {mounted && (
+              !token ? (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-4 py-3 text-sm font-semibold uppercase tracking-widest transition-all duration-300 hover:bg-primary/20 hover:pl-6 rounded-lg text-white/90 hover:text-primary"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-4 py-3 text-sm font-semibold uppercase tracking-widest transition-all duration-300 hover:bg-primary/20 hover:pl-6 rounded-lg text-white/90 hover:text-primary"
+                >
+                  Register
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-4 py-3 text-sm font-semibold uppercase tracking-widest transition-all duration-300 hover:bg-primary/20 hover:pl-6 rounded-lg text-white/90 hover:text-primary"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-3 text-sm font-semibold uppercase tracking-widest transition-all duration-300 hover:bg-red-500/20 hover:pl-6 rounded-lg text-red-400 hover:text-red-300 w-full text-left"
+                >
+                  Logout
+                </button>
+              </>
+            )
+            )}
           </nav>
         </div>
       </div>
