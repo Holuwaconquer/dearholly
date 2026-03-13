@@ -65,7 +65,7 @@ const Navbar = () => {
                 <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-tighter uppercase text-white transition-colors group-hover:text-primary">
                   DearHolly
                 </h1>
-                <p className="text-[10px] sm:text-xs font-medium text-white/70 -mt-1">wears by Amaru Paul Odiana</p>
+                <p className="text-[10px] sm:text-xs font-medium text-white/70 -mt-1">wears by Amavu Paul Odiana</p>
               </div>
           </Link>
 

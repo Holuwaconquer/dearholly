@@ -79,7 +79,7 @@ export default function AboutPage() {
                 <img 
                   className="rounded-3xl shadow-2xl relative z-10 w-full aspect-[4/5] object-cover hover:scale-[1.02] transition-transform duration-700" 
                   src={Amaru.src}
-                  alt="Portrait of Amaru Paul Odiana"
+                  alt="Portrait of Amavu Paul Odiana"
                 />
                 <div className="absolute -bottom-4 sm:-bottom-6 -right-4 sm:-right-6 bg-white p-4 sm:p-6 rounded-2xl shadow-xl z-20 hidden lg:block border-l-4 border-primary">
                   <p className="text-black font-bold text-base sm:text-lg italic">"Music is the architecture of the soul."</p>
@@ -89,14 +89,14 @@ export default function AboutPage() {
               <div className="w-full lg:w-1/2 space-y-6 lg:space-y-8 animate-slide-left">
                 <h2 className="text-primary text-lg font-bold uppercase tracking-[0.3em]">Our Founder</h2>
                 <div>
-                  <h3 className="text-3xl text-green-700 sm:text-4xl lg:text-5xl font-bold">Amaru Paul Odiana</h3>
+                  <h3 className="text-3xl text-green-700 sm:text-4xl lg:text-5xl font-bold">Amavu Paul Odiana</h3>
                   <p className="text-primary text-base sm:text-lg leading-relaxed font-medium">
                     Founder & Creative Director
                   </p>
 
                 </div>
                 <p className="text-gray-600 text-base sm:text-lg leading-relaxed">
-                  Amaru Paul Odiana is the Founder and Creative Director of Dearholly, leading the brand with a clear vision rooted in consistency, culture, and craftsmanship. His approach to fashion is intentional and forward-driven, blending refined streetwear with elevated design principles.
+                  Amavu Paul Odiana is the Founder and Creative Director of Dearholly, leading the brand with a clear vision rooted in consistency, culture, and craftsmanship. His approach to fashion is intentional and forward-driven, blending refined streetwear with elevated design principles.
                 </p>
                 <p className="text-gray-600 text-base sm:text-lg leading-relaxed">
                   Under his leadership, DearHolly has become a sanctuary for those who seek beauty in the details and harmony in their surroundings. His vision remains clear: to create enduring pieces that resonate across generations.

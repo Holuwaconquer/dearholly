@@ -50,7 +50,7 @@ const NarrativeSection = () => {
             WHERE THE STUDIO MEETS THE ATELIER
           </h2>
           <p className="text-base sm:text-lg text-slate-700 font-medium mb-4 leading-relaxed">
-            For Amaru Paul Odiana, fashion is not just visual—it's acoustic. Every stitch in DearHolly is inspired by the frequencies of contemporary urban soundscapes.
+            For Amavu Paul Odiana, fashion is not just visual—it's acoustic. Every stitch in DearHolly is inspired by the frequencies of contemporary urban soundscapes.
           </p>
           <p className="text-base sm:text-lg text-slate-700 font-medium mb-6 sm:mb-8 md:mb-10 leading-relaxed">
             We don't just dress artists; we translate their resonance into tangible silhouettes. High-fashion streetwear for those who hear the world differently.

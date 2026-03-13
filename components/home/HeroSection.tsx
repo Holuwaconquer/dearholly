@@ -193,10 +193,10 @@ const HeroSection = () => {
           {/* Left side - Main content */}
           <div className="flex-1 w-full">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tighter uppercase mb-3 sm:mb-4 text-white animate-slide-down">
-              RHYTHM & REFINEMENT
+              WELCOME TO DEARHOLLY
             </h1>
             <p className="text-white/90 text-sm sm:text-base md:text-lg font-medium max-w-xl animate-slide-up animate-delay-200">
-              Seasonal essentials designed for the modern auteur. Experience the intersection of acoustic inspiration and high-end tailoring.
+              MORE THAN MUSIC FOR THE ONES WHO MOVE DFFERENT.
             </p>
           </div>
 
