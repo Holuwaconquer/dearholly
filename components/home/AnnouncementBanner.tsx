@@ -71,7 +71,7 @@ export default function AnnouncementBanner() {
   if (loading) {
     // Show a loading placeholder
     return (
-      <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-700 to-green-700 text-white overflow-hidden">
+      <div className="relative bg-linear-to-r from-emerald-600 via-emerald-700 to-green-700 text-white overflow-hidden">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-center">
             <div className="text-sm text-white/70">Loading announcement...</div>
