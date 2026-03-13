@@ -161,7 +161,7 @@ export default function CartPage() {
                   >
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                       {/* Product Image */}
-                      <div className="w-full sm:w-32 h-32 bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900 dark:to-green-900 rounded-xl overflow-hidden flex-shrink-0">
+                      <div className="w-full sm:w-32 md:h-32 bg-linear-to-br from-emerald-100 to-green-100 rounded-xl overflow-hidden shrink-0">
                         {item.image ? (
                           <img
                             src={item.image}

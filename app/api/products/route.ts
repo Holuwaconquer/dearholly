@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Product from '@/models/Product'
-import Category from '@/models/Category'
+// Ensure Category model is registered
+import '@/models/Category'
 import { successResponse, errorResponse } from '@/lib/api-response'
 
 export async function GET(request: NextRequest) {
@@ -30,11 +31,21 @@ export async function GET(request: NextRequest) {
     }
 
     // Get products
-    const products = await Product.find(filter)
-      .populate('category', 'name slug')
-      .sort(sortOption)
-      .limit(Math.min(limit, 50)) // Max 50 products
-      .lean()
+    let products
+    try {
+      products = await Product.find(filter)
+        .populate('category', 'name slug')
+        .sort(sortOption)
+        .limit(Math.min(limit, 50)) // Max 50 products
+        .lean()
+    } catch (populateError) {
+      console.warn('Populate failed, fetching without populate:', populateError)
+      // Fallback: get products without populate
+      products = await Product.find(filter)
+        .sort(sortOption)
+        .limit(Math.min(limit, 50)) // Max 50 products
+        .lean()
+    }
 
     // Transform products for frontend
     const transformedProducts = products.map(product => ({
@@ -55,7 +66,7 @@ export async function GET(request: NextRequest) {
       rating: product.rating,
       reviews: product.reviews,
       category: product.category,
-      categoryName: (product.category as any)?.name || 'Unknown'
+      categoryName: (product.category as any)?.name || 'Fashion'
     }))
 
     return successResponse({

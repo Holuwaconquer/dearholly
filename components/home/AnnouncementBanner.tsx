@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { X, Sparkles, ArrowRight } from 'lucide-react'
+import HollyDress from '@/public/dearholly-ladies.png'
 
 interface Product {
   _id: string
@@ -15,10 +16,10 @@ interface Product {
   isFeatured: boolean
 }
 
-export default function AnnouncementBanner() {
+export default function AnnouncementModal() {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
-  const [dismissed, setDismissed] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
     const fetchFeaturedProduct = async () => {
@@ -39,11 +40,11 @@ export default function AnnouncementBanner() {
             // Use a demo product if no real products exist
             setProduct({
               _id: 'demo',
-              name: 'Premium Wireless Headphones',
-              slug: 'premium-wireless-headphones',
+              name: 'Lady Hoodie and top',
+              slug: 'Lady Hoodie and top',
               price: 25000,
               comparePrice: 35000,
-              images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400'],
+              images: HollyDress ? [HollyDress.src] : [],
               isFeatured: true
             })
           }
@@ -53,125 +54,102 @@ export default function AnnouncementBanner() {
         // Fallback to demo product on error
         setProduct({
           _id: 'demo',
-          name: 'Premium Wireless Headphones',
-          slug: 'premium-wireless-headphones',
+          name: 'Lady Hoodie and top',
+          slug: 'Lady Hoodie and top',
           price: 25000,
           comparePrice: 35000,
-          images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400'],
+          images: HollyDress ? [HollyDress.src] : [],
           isFeatured: true
         })
       } finally {
         setLoading(false)
+        // Show modal after a short delay for better UX
+        setTimeout(() => setIsOpen(true), 1000)
       }
     }
 
     fetchFeaturedProduct()
   }, [])
 
-  if (loading) {
-    // Show a loading placeholder
-    return (
-      <div className="relative bg-linear-to-r from-emerald-600 via-emerald-700 to-green-700 text-white overflow-hidden">
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-center">
-            <div className="text-sm text-white/70">Loading announcement...</div>
-          </div>
-        </div>
-      </div>
-    )
+  const closeModal = () => {
+    setIsOpen(false)
   }
 
-  if (!product) {
-    // This should not happen now since we have a demo product fallback
-    return null
-  }
-
-  if (dismissed) {
-    return null
-  }
-
-  const discount = product.comparePrice && product.comparePrice > product.price
+  const discount = product?.comparePrice && product.comparePrice > product.price
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
     : 0
 
+  if (loading || !product || !isOpen) {
+    return null
+  }
+
   return (
-    <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-700 to-green-700 text-white overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }} />
-      </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="relative max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300">
+        {/* Close Button */}
+        <button
+          onClick={closeModal}
+          className="absolute top-4 right-4 z-10 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors duration-200"
+          aria-label="Close announcement"
+        >
+          <X className="w-5 h-5 text-gray-600" />
+        </button>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between gap-6">
-          {/* Content */}
-          <div className="flex items-center gap-4 flex-1 min-w-0">
-            {/* Product Image */}
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-white/20 flex-shrink-0">
-              {product.images && product.images.length > 0 ? (
-                <Image
-                  src={product.images[0]}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                />
-              ) : (
-                <div className="w-full h-full bg-white/10 flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-white/60" />
-                </div>
-              )}
+        {/* Product Image - Made bigger */}
+        <div className="relative w-full h-64 bg-gray-100">
+          {product.images && product.images.length > 0 ? (
+            <Image
+              src={product.images[0]}
+              alt={product.name}
+              fill
+              className="object-contain"
+              sizes="400px"
+              priority
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Sparkles className="w-16 h-16 text-gray-400" />
             </div>
+          )}
+          {discount > 0 && (
+            <div className="absolute top-4 left-4 bg-rose-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+              -{discount}%
+            </div>
+          )}
+        </div>
 
-            {/* Text Content */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="w-4 h-4 text-yellow-300" />
-                <span className="text-sm font-semibold uppercase tracking-wide">
-                  New Arrival
-                </span>
-                {discount > 0 && (
-                  <span className="bg-rose-500 text-white px-2 py-0.5 rounded text-xs font-bold">
-                    -{discount}%
-                  </span>
-                )}
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold truncate mb-1">
-                {product.name}
-              </h3>
-              <div className="flex items-center gap-3">
-                <span className="text-xl font-bold text-yellow-300">
-                  ₦{product.price.toLocaleString('en-NG')}
-                </span>
-                {product.comparePrice && product.comparePrice > product.price && (
-                  <span className="text-sm text-white/70 line-through">
-                    ₦{product.comparePrice.toLocaleString('en-NG')}
-                  </span>
-                )}
-              </div>
-            </div>
+        {/* Content */}
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-5 h-5 text-yellow-500" />
+            <span className="text-sm font-bold uppercase tracking-wide text-gray-600">
+              New Arrival
+            </span>
           </div>
 
-          {/* CTA Button */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <Link
-              href={product._id === 'demo' ? '/shop' : `/shop/${product.slug}`}
-              className="group bg-white text-emerald-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2 hover:scale-105 transform"
-            >
-              Shop Now
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
+            {product.name}
+          </h3>
+
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-2xl font-bold text-emerald-600">
+              ₦{product.price.toLocaleString('en-NG')}
+            </span>
+            {product.comparePrice && product.comparePrice > product.price && (
+              <span className="text-lg text-gray-500 line-through">
+                ₦{product.comparePrice.toLocaleString('en-NG')}
+              </span>
+            )}
           </div>
 
-          {/* Dismiss Button */}
-          <button
-            onClick={() => setDismissed(true)}
-            className="flex-shrink-0 p-1 hover:bg-white/10 rounded-full transition-colors duration-200"
-            aria-label="Dismiss announcement"
+          <Link
+            href={product._id === 'demo' ? '/shop' : `/shop/${product.slug}`}
+            onClick={closeModal}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 group"
           >
-            <X className="w-5 h-5" />
-          </button>
+            Shop Now
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
       </div>
     </div>
