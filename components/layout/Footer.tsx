@@ -1,24 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
 
 interface FooterProps {
   variant?: 'default' | 'green' | 'dark'
 }
 
 const Footer = ({ variant = 'green' }: FooterProps) => {
-  const [email, setEmail] = useState('')
-  const [isSubscribed, setIsSubscribed] = useState(false)
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (email) {
-      setIsSubscribed(true)
-      setEmail('')
-      setTimeout(() => setIsSubscribed(false), 3000)
-    }
-  }
 
   const footerVariants = {
     default: {
@@ -49,7 +37,7 @@ const Footer = ({ variant = 'green' }: FooterProps) => {
   return (
     <footer className={`${styles.bg} ${styles.text} py-16 px-4 sm:px-6 lg:px-8`}>
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
           {/* Brand */}
           <div className="space-y-6">
             <Link href="/" className="flex items-center gap-3 group">
@@ -100,7 +88,7 @@ const Footer = ({ variant = 'green' }: FooterProps) => {
               {['Shipping & Returns', 'Size Guide', 'Contact Us', 'Sustainability'].map((item) => (
                 <li key={item}>
                   <Link
-                    href="#"
+                    href={item === 'Contact Us' ? '/contact' : '#'}
                     className={`${styles.textMuted} hover:${styles.accent} transition-all duration-300 hover:translate-x-2 inline-block`}
                   >
                     {item}
@@ -108,35 +96,6 @@ const Footer = ({ variant = 'green' }: FooterProps) => {
                 </li>
               ))}
             </ul>
-          </div>
-
-          {/* Newsletter */}
-          <div>
-            <h4 className={`text-xs font-black uppercase tracking-[0.2em] mb-6 ${styles.accent}`}>Newsletter</h4>
-            <p className={`${styles.textMuted} text-sm mb-6`}>
-              Join the list for exclusive early access to drops.
-            </p>
-            <form onSubmit={handleSubscribe} className="relative">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email Address"
-                className={`w-full bg-white/5 border ${styles.border} rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all ${styles.text}`}
-                required
-              />
-              <button
-                type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary hover:scale-110 transition-transform"
-              >
-                <span className="material-symbols-outlined">arrow_forward</span>
-              </button>
-            </form>
-            {isSubscribed && (
-              <p className="text-green-400 text-xs mt-2 animate-fade-in">
-                ✓ Successfully subscribed!
-              </p>
-            )}
           </div>
         </div>
 
@@ -149,7 +108,7 @@ const Footer = ({ variant = 'green' }: FooterProps) => {
             {['Privacy Policy', 'Terms of Service'].map((item) => (
               <Link
                 key={item}
-                href="#"
+                href={item === 'Privacy Policy' ? '/privacy-policy' : item === 'Terms of Service' ? '/terms-of-service' : '#'}
                 className={`${styles.textMuted} hover:${styles.accent} transition-colors`}
               >
                 {item}

@@ -148,7 +148,7 @@ const HeroSection = () => {
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tighter uppercase mb-3 sm:mb-4 text-white">
                 RHYTHM & REFINEMENT
               </h1>
-              <p className="text-white/90 text-sm sm:text-base md:text-lg font-medium max-w-xl">
+              <p className="text-gray-700 text-sm sm:text-base md:text-lg font-medium max-w-xl">
                 Seasonal essentials designed for the modern auteur.
               </p>
             </div>
@@ -192,11 +192,11 @@ const HeroSection = () => {
         <div ref={sectionRef} className="grid md:grid-cols-2 items-center justify-center gap-8 lg:gap-12 animate-on-scroll">
           {/* Left side - Main content */}
           <div className="flex-1 w-full">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tighter uppercase mb-3 sm:mb-4 text-white animate-slide-down">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tighter uppercase mb-3 sm:mb-4 text-white animate-slide-down mt-6 md:mt-0">
               WELCOME TO DEARHOLLY
             </h1>
             <p className="text-white/90 text-sm sm:text-base md:text-lg font-medium max-w-xl animate-slide-up animate-delay-200">
-              MORE THAN MUSIC FOR THE ONES WHO MOVE DFFERENT.
+              MORE THAN MUSIC FOR THE ONES WHO MOVE DIFFERENT.
             </p>
           </div>
 
@@ -259,7 +259,7 @@ const HeroSection = () => {
             </div>
           )}
 
-          <div className="flex flex-wrap gap-3 sm:gap-4 mt-4 sm:mt-6 animate-slide-up animate-delay-400 lg:hidden">
+          <div className="flex flex-wrap gap-3 sm:gap-4 mb-4 md:mb-0 md:mt-4 sm:mt-6 animate-slide-up animate-delay-400 lg:hidden">
             <Link
               href="/shop"
               className="group bg-primary text-white px-5 sm:px-6 py-3 font-bold text-xs sm:text-sm uppercase tracking-widest hover:bg-soft-green transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30"

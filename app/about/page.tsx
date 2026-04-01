@@ -1,11 +1,15 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { X } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Amaru from '../../public/amarureal.jpeg'
 
 export default function AboutPage() {
+  const [showMusicModal, setShowMusicModal] = useState(false)
 
   const musicPlatforms = [
     {
@@ -176,7 +180,7 @@ export default function AboutPage() {
                   Explore Collections
                 </button>
               </Link>
-              <button onClick={() => window.location.href = 'https://open.spotify.com/artist/2REObag4jzlespV0dJ1FF3?si=CqQxf508Q-2ojnQQh0HRiA'} className="w-full sm:w-auto border-2 border-white/30 text-white px-8 sm:px-10 py-3 sm:py-4 rounded-full font-bold uppercase tracking-widest hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1">
+              <button onClick={() => setShowMusicModal(true)} className="w-full sm:w-auto border-2 border-white/30 text-white px-8 sm:px-10 py-3 sm:py-4 rounded-full font-bold uppercase tracking-widest hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1">
                 Listen to the Playlist
               </button>
             </div>
@@ -184,6 +188,65 @@ export default function AboutPage() {
         </section>
       </main>
       <Footer variant="green" />
+
+      {/* Music Platforms Modal */}
+      <AnimatePresence>
+        {showMusicModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowMusicModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setShowMusicModal(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Listen to Our Music</h3>
+
+              <div className="space-y-4">
+                {musicPlatforms.map((platform) => (
+                  <a
+                    key={platform.name}
+                    href={platform.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 group"
+                    onClick={() => setShowMusicModal(false)}
+                  >
+                    <div className="w-12 h-12 flex-shrink-0">
+                      <img
+                        src={platform.logo}
+                        alt={platform.name}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900 group-hover:text-gray-700">
+                        {platform.name}
+                      </h4>
+                      <p className="text-sm text-gray-600 group-hover:text-gray-500">
+                        {platform.description}
+                      </p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }

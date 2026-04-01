@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ShoppingBag } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Sparkles } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 
 interface ProductPreview {
@@ -43,6 +45,7 @@ const LatestDrops = () => {
   const [products, setProducts] = useState<ProductPreview[]>([])
   const [loading, setLoading] = useState(true)
   const { addItem } = useCart()
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -175,7 +178,7 @@ const LatestDrops = () => {
         {products.length > 0 ? products.map((product, index) => (
           <div
             key={product.slug || index}
-            className="group bg-white backdrop-blur-md rounded-xl overflow-hidden  hover:bg-white transition-all duration-300 hover:scale-101 shadow-lg hover:shadow-xl border border-gray-700/50"
+            className="group bg-white backdrop-blur-md rounded-xl overflow-hidden  hover:bg-white transition-all duration-300 hover:scale-101 shadow-lg hover:shadow-xl "
             style={{ transitionDelay: `${index * 0.1}s` }}
           >
             <Link href={`/shop/${product.slug}`}>
@@ -218,6 +221,8 @@ const LatestDrops = () => {
                       image: product.image || '/amarureal.jpeg',
                       slug: product.slug,
                     })
+                    setToastMsg(`${product.name} added to cart`)
+                    setTimeout(() => setToastMsg(null), 3000)
                   }}
                   className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 px-4 rounded-lg font-semibold text-sm transition-colors"
                   aria-label="Add to cart"
@@ -234,6 +239,21 @@ const LatestDrops = () => {
         )}
       </div>
       </div>
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toastMsg && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="fixed top-24 right-4 z-50 bg-emerald-500 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2"
+          >
+            <Sparkles className="w-5 h-5" />
+            <span>{toastMsg}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   )
 }

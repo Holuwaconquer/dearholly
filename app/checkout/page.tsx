@@ -19,7 +19,11 @@ import {
   Phone,
   Mail,
   User,
-  ShoppingBag
+  ShoppingBag,
+  Upload,
+  X,
+  File,
+  Image as ImageIcon
 } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -38,6 +42,7 @@ interface CartItem {
 interface OrderPayload {
   items: Array<{ productId: string; quantity: number; size?: string; color?: string }>
   shippingAddress: {
+    fullName?: string
     firstName: string
     lastName: string
     email: string
@@ -47,9 +52,11 @@ interface OrderPayload {
     state: string
     postalCode: string
     country: string
+    paymentProof?: string
   }
-  paymentMethod: 'wallet' | 'korapay'
+  paymentMethod: 'korapay' | 'manual'
   totalPrice: number
+  paymentProof?: string
 }
 
 export default function CheckoutPage() {
@@ -59,8 +66,16 @@ export default function CheckoutPage() {
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'korapay'>("korapay")
+  const [paymentMethod, setPaymentMethod] = useState<'korapay' | 'manual'>("korapay")
   const [currentStep, setCurrentStep] = useState(1)
+
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([])
+  const [selectedShippingAddressId, setSelectedShippingAddressId] = useState<string>('')
+  const [paymentProof, setPaymentProof] = useState<string>('')
+  const [paymentProofFile, setPaymentProofFile] = useState<{ name: string; size: number; type: string } | null>(null)
+  const [paymentProofPreview, setPaymentProofPreview] = useState<string>('')
+  const [isDragActive, setIsDragActive] = useState(false)
+  const [paymentInstructions, setPaymentInstructions] = useState<string>('Transfer to account name DearHolly Store, account 0123456789 (Any Bank)')
 
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
@@ -107,9 +122,114 @@ export default function CheckoutPage() {
     if (token) fetchProfile()
   }, [token])
 
+  useEffect(() => {
+    const fetchSavedShipping = async () => {
+      if (!token) return
+      try {
+        const res = await fetch('/api/shipping', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        if (data.success && data.data && data.data.length > 0) {
+          setSavedAddresses(data.data)
+          const defaultAddr = data.data.find((item: any) => item.isDefault) || data.data[0]
+          if (defaultAddr) {
+            setSelectedShippingAddressId(defaultAddr._id)
+            setFormData(prev => ({
+              ...prev,
+              firstName: defaultAddr.recipient?.split(' ')[0] || prev.firstName,
+              lastName: defaultAddr.recipient?.split(' ').slice(1).join(' ') || prev.lastName,
+              phone: defaultAddr.phone || prev.phone,
+              address: defaultAddr.address || prev.address,
+              city: defaultAddr.city || prev.city,
+              state: defaultAddr.state || prev.state,
+              postalCode: defaultAddr.zip || prev.postalCode,
+              country: defaultAddr.country || prev.country
+            }))
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch saved shipping addresses:', err)
+      }
+    }
+    fetchSavedShipping()
+
+    const fetchPaymentSettings = async () => {
+      if (!token) return
+      try {
+        const res = await fetch('/api/admin/payment-methods', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        if (data.success && data.data) {
+          setPaymentInstructions(data.data.details)
+        }
+      } catch (err) {
+        console.error('Failed to fetch payment settings:', err)
+      }
+    }
+
+    fetchPaymentSettings()
+  }, [token])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handlePaymentProofFile = (file: File) => {
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']
+
+    if (file.size > maxSize) {
+      setError('File size must be less than 5MB')
+      return
+    }
+
+    if (!allowedTypes.includes(file.type)) {
+      setError('Only JPEG, PNG, GIF, and PDF files are allowed')
+      return
+    }
+
+    setPaymentProofFile({
+      name: file.name,
+      size: file.size,
+      type: file.type
+    })
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const result = e.target?.result as string
+      setPaymentProof(result)
+      setPaymentProofPreview(result)
+      setError('')
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleDrag = (e: React.DragEvent, isDragging: boolean) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragActive(isDragging)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragActive(false)
+
+    const files = e.dataTransfer.files
+    if (files && files[0]) {
+      handlePaymentProofFile(files[0])
+    }
+  }
+
+  const removePaymentProof = () => {
+    setPaymentProof('')
+    setPaymentProofFile(null)
+    setPaymentProofPreview('')
   }
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -121,7 +241,7 @@ export default function CheckoutPage() {
   }
 
   const validateStep2 = () => {
-    return formData.address && formData.city && formData.state && formData.postalCode
+    return formData.address && formData.city && formData.state
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -136,16 +256,23 @@ export default function CheckoutPage() {
         return
       }
 
+      if (paymentMethod === 'manual' && !paymentProof) {
+        setError('Please upload proof of payment for manual payment')
+        setLoading(false)
+        return
+      }
 
-      const orderPayload: OrderPayload = {
+
+      const orderPayload: any = {
         items: cartItems.map(item => ({
           productId: item.id,
           quantity: item.quantity,
-          size: item.size,
-          color: item.color
+          size: item.size || '',
+          color: item.color || ''
         })),
         shippingAddress: {
           ...formData,
+          fullName: `${formData.firstName} ${formData.lastName}`.trim(),
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
@@ -157,7 +284,8 @@ export default function CheckoutPage() {
           country: formData.country
         },
         paymentMethod,
-        totalPrice: total
+        totalPrice: total,
+        paymentProof: paymentMethod === 'manual' ? paymentProof : undefined
       }
 
       const res = await fetch('/api/orders', {
@@ -412,6 +540,38 @@ export default function CheckoutPage() {
                       </div>
 
                       <div className="space-y-4">
+                        {savedAddresses.length > 0 && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">Saved Shipping Addresses</label>
+                            <select
+                              value={selectedShippingAddressId}
+                              onChange={(e) => {
+                                const selected = savedAddresses.find(addr => addr._id === e.target.value)
+                                setSelectedShippingAddressId(e.target.value)
+                                if (selected) {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    firstName: selected.recipient?.split(' ')[0] || prev.firstName,
+                                    lastName: selected.recipient?.split(' ').slice(1).join(' ') || prev.lastName,
+                                    phone: selected.phone || prev.phone,
+                                    address: selected.address || prev.address,
+                                    city: selected.city || prev.city,
+                                    state: selected.state || prev.state,
+                                    postalCode: selected.zip || prev.postalCode,
+                                    country: selected.country || prev.country
+                                  }))
+                                }
+                              }}
+                              className="w-full h-11 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white px-3"
+                            >
+                              <option value="">Use saved address</option>
+                              {savedAddresses.map(addr => (
+                                <option key={addr._id} value={addr._id}>{`${addr.type} - ${addr.recipient}, ${addr.address}`}</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
                         <div className="sm:col-span-2">
                           <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
                             Street Address
@@ -555,7 +715,7 @@ export default function CheckoutPage() {
                             name="paymentMethod"
                             value="korapay"
                             checked={paymentMethod === 'korapay'}
-                            onChange={(e) => setPaymentMethod(e.target.value as 'korapay')}
+                            onChange={(e) => setPaymentMethod(e.target.value as 'korapay' | 'manual')}
                             className="w-4 h-4 text-emerald-600"
                           />
                           <div className="ml-3 flex-1">
@@ -563,14 +723,14 @@ export default function CheckoutPage() {
                               <CreditCard className="w-5 h-5 text-emerald-600" />
                               <span className="font-medium text-gray-900 dark:text-white">Korapay</span>
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Pay with Card, Bank Transfer, or USSD</p>
+                            <p className="text-xs text-gray-500 mt-1">Pay with Card, Bank Transfer, or USSD (fastest)</p>
                           </div>
                         </motion.label>
 
                         <motion.label
                           whileHover={{ scale: 1.01 }}
                           className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                            paymentMethod === 'wallet'
+                            paymentMethod === 'manual'
                               ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
                               : 'border-gray-200 dark:border-gray-700 hover:border-emerald-300'
                           }`}
@@ -578,21 +738,177 @@ export default function CheckoutPage() {
                           <input
                             type="radio"
                             name="paymentMethod"
-                            value="wallet"
-                            checked={paymentMethod === 'wallet'}
-                            onChange={(e) => setPaymentMethod(e.target.value as 'wallet')}
+                            value="manual"
+                            checked={paymentMethod === 'manual'}
+                            onChange={(e) => setPaymentMethod(e.target.value as 'korapay' | 'manual')}
                             className="w-4 h-4 text-emerald-600"
                           />
                           <div className="ml-3 flex-1">
                             <div className="flex items-center gap-2">
                               <Wallet className="w-5 h-5 text-emerald-600" />
-                              <span className="font-medium text-gray-900 dark:text-white">Wallet</span>
+                              <span className="font-medium text-gray-900 dark:text-white">Manual Payment</span>
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">
-                            </p>
+                            <p className="text-xs text-gray-500 mt-1">Transfer to bank account and upload proof</p>
                           </div>
                         </motion.label>
                       </div>
+
+                      {paymentMethod === 'manual' && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="mt-6 p-6 border border-emerald-100 dark:border-emerald-900/20 rounded-xl bg-gradient-to-br from-emerald-50/50 to-green-50/50 dark:from-emerald-900/10 dark:to-green-900/10 space-y-4"
+                        >
+                          <div>
+                            <h3 className="font-semibold text-gray-900 dark:text-white mb-1 flex items-center gap-2">
+                              <Building className="w-5 h-5 text-emerald-600" />
+                              Payment Instructions
+                            </h3>
+                            <div className="bg-white dark:bg-gray-800/50 px-4 py-3 rounded-lg border border-emerald-200 dark:border-emerald-900/30 mt-2">
+                              <p className="text-sm font-mono text-gray-900 dark:text-white leading-relaxed whitespace-pre-wrap">
+                                {paymentInstructions}
+                              </p>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                              Copy the details above and make the transfer, then upload your proof of payment below.
+                            </p>
+                          </div>
+
+                          {/* File Upload Widget */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                              <Upload className="w-4 h-4" />
+                              Upload Proof of Payment
+                            </label>
+
+                            {!paymentProofFile ? (
+                              <motion.div
+                                onDragEnter={(e) => handleDrag(e, true)}
+                                onDragLeave={(e) => handleDrag(e, false)}
+                                onDragOver={(e) => handleDrag(e, true)}
+                                onDrop={handleDrop}
+                                className={`relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+                                  isDragActive
+                                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10'
+                                }`}
+                              >
+                                <input
+                                  type="file"
+                                  accept="image/jpeg,image/png,image/gif,application/pdf"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0]
+                                    if (file) handlePaymentProofFile(file)
+                                  }}
+                                  className="absolute inset-0 opacity-0 cursor-pointer"
+                                />
+                                <div className="space-y-2">
+                                  <motion.div
+                                    animate={{ y: isDragActive ? -5 : 0 }}
+                                    className="flex justify-center"
+                                  >
+                                    <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-full">
+                                      <Upload className="w-6 h-6 text-emerald-600" />
+                                    </div>
+                                  </motion.div>
+                                  <div>
+                                    <p className="font-medium text-gray-900 dark:text-white">
+                                      {isDragActive ? 'Drop your file here' : 'Drag & drop or click to upload'}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                      JPEG, PNG, GIF or PDF • Max 5MB
+                                    </p>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ) : (
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-4"
+                              >
+                                {/* File Preview */}
+                                <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-emerald-200 dark:border-emerald-900/30">
+                                  <div className="flex items-start gap-4">
+                                    {/* Preview Thumbnail */}
+                                    <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+                                      {paymentProofFile.type.startsWith('image/') && paymentProofPreview ? (
+                                        <img
+                                          src={paymentProofPreview}
+                                          alt="Preview"
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <div className="text-center">
+                                          <File className="w-8 h-8 text-gray-400 mx-auto" />
+                                          <p className="text-xs text-gray-500 mt-1">PDF</p>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* File Details */}
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium text-gray-900 dark:text-white truncate">
+                                        {paymentProofFile.name}
+                                      </p>
+                                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                        {(paymentProofFile.size / 1024).toFixed(2)} KB
+                                      </p>
+                                      <div className="flex items-center gap-2 mt-2">
+                                        <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                          <div className="h-full bg-gradient-to-r from-emerald-500 to-green-500 w-full" />
+                                        </div>
+                                        <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                                      </div>
+                                      <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
+                                        ✓ Ready to submit
+                                      </p>
+                                    </div>
+
+                                    {/* Remove Button */}
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      type="button"
+                                      onClick={removePaymentProof}
+                                      className="p-2 hover:bg-rose-100 dark:hover:bg-rose-900/30 rounded-lg transition-colors flex-shrink-0"
+                                      title="Remove file"
+                                    >
+                                      <X className="w-5 h-5 text-rose-500" />
+                                    </motion.button>
+                                  </div>
+                                </div>
+
+                                {/* Change File Button */}
+                                <motion.label
+                                  whileHover={{ scale: 1.01 }}
+                                  whileTap={{ scale: 0.99 }}
+                                  className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                                >
+                                  <Upload className="w-4 h-4" />
+                                  Change File
+                                  <input
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/gif,application/pdf"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0]
+                                      if (file) handlePaymentProofFile(file)
+                                    }}
+                                    className="hidden"
+                                  />
+                                </motion.label>
+                              </motion.div>
+                            )}
+
+                            {/* File Requirements */}
+                            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 rounded-lg">
+                              <p className="text-xs text-blue-700 dark:text-blue-400">
+                                <span className="font-medium">Pro tip:</span> Upload a clear screenshot or image of your payment confirmation for faster verification.
+                              </p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
 
                       {currentStep === 3 && (
                         <div className="flex gap-3 mt-6">

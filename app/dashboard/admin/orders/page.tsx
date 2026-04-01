@@ -52,7 +52,22 @@ export default function AdminOrdersPage() {
       })
       const data = await res.json()
       if (data.success) {
-        setOrdersData(data.data.orders || [])
+        // Transform order data to match dashboard expectations
+        const transformedOrders = (data.data.orders || []).map((order: any) => ({
+          id: order._id?.toString().slice(-8) || 'N/A',
+          fullId: order._id?.toString() || '',
+          customer: order.userId ? `${order.userId.firstName || ''} ${order.userId.lastName || ''}`.trim() || 'Unknown' : 'Unknown',
+          email: order.userId?.email || 'N/A',
+          date: order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A',
+          items: order.totalQuantity || 0,
+          total: order.totalPrice || 0,
+          status: order.status || 'pending',
+          paymentStatus: order.paymentStatus || 'pending',
+          paymentMethod: order.paymentMethod || 'unknown',
+          paymentProof: order.paymentProof,
+          _id: order._id
+        }))
+        setOrdersData(transformedOrders)
         setTotalOrders(data.data.pagination?.total || 0)
         setTotalPages(data.data.pagination?.pages || 1)
       }
@@ -80,7 +95,8 @@ export default function AdminOrdersPage() {
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         order.customer.toLowerCase().includes(searchQuery.toLowerCase())
+                         order.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         order.email.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesStatus = selectedStatus === 'all' || order.status === selectedStatus
     return matchesSearch && matchesStatus
   })
@@ -217,7 +233,13 @@ export default function AdminOrdersPage() {
         </motion.div>
 
         {/* Orders Table */}
-        <motion.div
+        {loadingOrders ? (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-12 h-12 border-4 border-emerald-300 border-t-transparent rounded-full animate-spin" />
+            <p className="mt-4 text-gray-600">Loading orders...</p>
+          </div>
+        ) : (
+          <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -278,18 +300,21 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                        order.payment === 'paid'
+                        order.paymentStatus === 'completed'
                           ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                          : order.payment === 'pending'
+                          : order.paymentStatus === 'pending'
                           ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                           : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
                       }`}>
-                        {order.payment}
+                        {order.paymentMethod || 'unknown'}
                       </span>
+                      {order.paymentProof && (
+                        <span className="ml-2 text-xs text-emerald-300">Proof</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
                       <div className="flex items-center gap-2">
-                        <Link href={`/dashboard/admin/orders/${order.id}`}>
+                        <Link href={`/dashboard/admin/orders/${order.fullId}`}>
                           <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
@@ -343,6 +368,7 @@ export default function AdminOrdersPage() {
             </div>
           </div>
         </motion.div>
+        )}
       </div>
     </motion.div>
   )

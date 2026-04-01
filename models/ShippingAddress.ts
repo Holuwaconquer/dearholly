@@ -49,8 +49,9 @@ const shippingAddressSchema = new Schema<IShippingAddress>(
     },
     zip: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
+      default: ''
     },
     country: {
       type: String,

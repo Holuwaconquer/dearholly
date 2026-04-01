@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import Product from '@/models/Product'
+import Category from '@/models/Category'
 import User from '@/models/User'
 import { verifyToken } from '@/lib/auth'
 import { successResponse, badRequestResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response'
@@ -40,12 +41,25 @@ export async function GET(request: NextRequest) {
     // support optional filters
     const categoryId = searchParams.get('category')
     const slug = searchParams.get('slug')
+    const status = searchParams.get('status')
+    const search = searchParams.get('search')
     const filter: any = {}
+
     if (categoryId) {
       filter.category = categoryId
     }
     if (slug) {
       filter.slug = slug
+    }
+    if (status && ['active', 'inactive'].includes(status)) {
+      filter.isActive = status === 'active'
+    }
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { sku: { $regex: search, $options: 'i' } }
+      ]
     }
 
     const productsQuery = Product.find(filter).populate('category', 'name')
@@ -119,7 +133,6 @@ export async function POST(request: NextRequest) {
     }
 
     // ensure category exists
-    const Category = (await import('@/models/Category')).default
     const cat = await Category.findById(category)
     if (!cat) {
       return badRequestResponse('Invalid category')

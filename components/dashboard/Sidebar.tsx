@@ -46,6 +46,7 @@ const Sidebar = ({ user }: SidebarProps) => {
     { href: '/dashboard/admin/products', label: 'Products', icon: 'inventory', activeColor: 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/20' },
     { href: '/dashboard/admin/categories', label: 'Categories', icon: 'category', activeColor: 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/20' },
     { href: '/dashboard/admin/orders', label: 'Orders', icon: 'receipt', activeColor: 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/20' },
+    { href: '/dashboard/admin/payment-settings', label: 'Payment Settings', icon: 'account_balance', activeColor: 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/20' },
   ] : [
     { href: '/dashboard', label: 'Overview', icon: 'dashboard', activeColor: 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/20' },
     { href: '/dashboard/orders', label: 'Order History', icon: 'history', activeColor: 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/20' },

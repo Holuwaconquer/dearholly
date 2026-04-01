@@ -11,6 +11,40 @@ const checkAdmin = async (userId: string) => {
   return user?.role === 'admin'
 }
 
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    await dbConnect()
+    const { id } = await params
+
+    const token = request.headers.get('authorization')?.split(' ')[1]
+
+    if (!token) {
+      return unauthorizedResponse()
+    }
+
+    const decoded = verifyToken(token)
+    if (!decoded) {
+      return unauthorizedResponse()
+    }
+
+    const isAdmin = await checkAdmin(decoded.userId)
+    if (!isAdmin) {
+      return forbiddenResponse()
+    }
+
+    const order = await Order.findById(id).populate('userId', 'firstName lastName email phone')
+
+    if (!order) {
+      return notFoundResponse()
+    }
+
+    return successResponse(order, 'Order retrieved successfully')
+  } catch (error) {
+    console.error('Get order error:', error)
+    return errorResponse('Failed to get order', 500)
+  }
+}
+
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await dbConnect()

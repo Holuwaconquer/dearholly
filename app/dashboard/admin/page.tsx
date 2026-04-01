@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Users,
   ShoppingBag,
@@ -22,7 +22,8 @@ import {
   Trash2,
   Download,
   Calendar,
-  Sparkles
+  Sparkles,
+  X
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -41,6 +42,9 @@ export default function AdminDashboardPage() {
   })
   const [recentOrders, setRecentOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState<any>(null)
+  const [showStatusModal, setShowStatusModal] = useState(false)
+  const [updatingStatus, setUpdatingStatus] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -103,6 +107,49 @@ export default function AdminDashboardPage() {
       console.error('Error fetching stats', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleViewOrder = (orderId: string) => {
+    router.push(`/dashboard/admin/orders/${orderId}`)
+  }
+
+  const handleEditStatus = (order: any) => {
+    setSelectedOrder(order)
+    setShowStatusModal(true)
+  }
+
+  const handleStatusUpdate = async (newStatus: string) => {
+    if (!selectedOrder || !token) return
+
+    setUpdatingStatus(true)
+    try {
+      const res = await fetch(`/api/admin/orders/${selectedOrder.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to update order status')
+      }
+
+      // Update the order in the recent orders list
+      setRecentOrders(prev => prev.map(order =>
+        order.id === selectedOrder.id
+          ? { ...order, status: newStatus }
+          : order
+      ))
+
+      setShowStatusModal(false)
+      setSelectedOrder(null)
+    } catch (err) {
+      console.error('Error updating order status:', err)
+    } finally {
+      setUpdatingStatus(false)
     }
   }
 
@@ -261,10 +308,18 @@ export default function AdminDashboardPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center gap-2">
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                        <button
+                          onClick={() => handleViewOrder(order.id)}
+                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-400 hover:text-emerald-600 transition-colors"
+                          title="View Order Details"
+                        >
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                        <button
+                          onClick={() => handleEditStatus(order)}
+                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors"
+                          title="Edit Order Status"
+                        >
                           <Edit className="w-4 h-4" />
                         </button>
                       </div>
@@ -308,6 +363,82 @@ export default function AdminDashboardPage() {
           })}
         </motion.div>
       </div>
+
+      {/* Status Update Modal */}
+      <AnimatePresence>
+        {showStatusModal && selectedOrder && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowStatusModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full mx-4 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setShowStatusModal(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                Update Order Status
+              </h3>
+
+              <div className="mb-6">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Order ID: {selectedOrder.id}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Customer: {selectedOrder.customer}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Current Status: <span className="font-medium capitalize">{selectedOrder.status}</span></p>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900 dark:text-white">Select New Status:</h4>
+                {[
+                  { value: 'pending', label: 'Payment Pending', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+                  { value: 'processing', label: 'Order Processing', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+                  { value: 'shipped', label: 'Order Shipped', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
+                  { value: 'delivered', label: 'Order Delivered', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+                  { value: 'cancelled', label: 'Order Cancelled', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' }
+                ].map((status) => (
+                  <button
+                    key={status.value}
+                    onClick={() => handleStatusUpdate(status.value)}
+                    disabled={updatingStatus}
+                    className={`w-full p-3 rounded-lg border text-left transition-all hover:shadow-md ${
+                      selectedOrder.status === status.value
+                        ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{status.label}</span>
+                      <span className={`px-2 py-1 text-xs rounded-full ${status.color}`}>
+                        {status.value}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {updatingStatus && (
+                <div className="mt-4 text-center">
+                  <div className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="w-4 h-4 border-2 border-emerald-300 border-t-transparent rounded-full animate-spin" />
+                    Updating status...
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }

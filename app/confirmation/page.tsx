@@ -111,8 +111,7 @@ export default function ConfirmationPage() {
   }
 
   const shipping = 0
-  const tax = Math.round((order.totalPrice * 0.08) * 100) / 100
-  const total = order.totalPrice + shipping + tax
+  const total = order.totalPrice + shipping
 
   return (
     <>
@@ -241,10 +240,6 @@ export default function ConfirmationPage() {
                   <div className="flex justify-between">
                     <span className="text-gray-700 dark:text-gray-300">Shipping</span>
                     <span className="font-medium text-emerald-600">FREE</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-700 dark:text-gray-300">Tax (8%)</span>
-                    <span className="font-medium text-gray-900 dark:text-white">₦{tax.toLocaleString()}</span>
                   </div>
                   <div className="border-t border-emerald-200 dark:border-emerald-800 pt-3 flex justify-between">
                     <span className="font-bold text-gray-900 dark:text-white">Total</span>

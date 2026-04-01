@@ -285,7 +285,13 @@ export default function AdminProductsPage() {
         </motion.div>
 
         {/* Products Grid/List View */}
-        <AnimatePresence mode="wait">
+        {loadingProducts ? (
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-12 h-12 border-4 border-emerald-300 border-t-transparent rounded-full animate-spin" />
+            <p className="mt-4 text-gray-600">Loading products...</p>
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
           {viewMode === 'grid' ? (
             <motion.div
               key="grid"
@@ -512,6 +518,7 @@ export default function AdminProductsPage() {
             </motion.div>
           )}
         </AnimatePresence>
+        )}
 
         {/* Pagination */}
         <motion.div

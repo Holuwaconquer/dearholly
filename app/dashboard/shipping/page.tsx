@@ -232,11 +232,10 @@ export default function ShippingPage() {
                     <input
                       type="text"
                       name="zip"
-                      placeholder="ZIP Code"
+                      placeholder="ZIP Code (optional)"
                       value={formData.zip}
                       onChange={handleInputChange}
                       className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:border-emerald-500 focus:ring-emerald-500 h-12 px-4 text-gray-900 dark:text-white"
-                      required
                     />
                     <input
                       type="text"

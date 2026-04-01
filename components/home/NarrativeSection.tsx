@@ -56,7 +56,7 @@ const NarrativeSection = () => {
             We don't just dress artists; we translate their resonance into tangible silhouettes. High-fashion streetwear for those who hear the world differently.
           </p>
           <div className="border-l-4 border-primary pl-4 sm:pl-6 py-2 italic text-slate-500 font-semibold text-sm sm:text-base">
-            "If you can't hear the garment, it isn't DearHolly." — Amaru
+            "If you can't hear the garment, it isn't DearHolly." — Amavu
           </div>
         </div>
       </div>

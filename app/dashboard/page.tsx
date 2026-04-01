@@ -34,7 +34,15 @@ export default function DashboardPage() {
       const data = await res.json()
       if (data.success) {
         const list = Array.isArray(data.data) ? data.data : data.data.orders || []
-        setOrders(list.slice(0, 3))
+        // Transform order data to match dashboard expectations
+        const transformedOrders = list.slice(0, 3).map((order: any) => ({
+          id: order._id?.toString().slice(-8) || 'N/A',
+          name: order.items?.[0]?.productName || 'Order',
+          date: order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A',
+          amount: order.totalPrice || 0,
+          status: order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Pending'
+        }))
+        setOrders(transformedOrders)
       }
     } catch (error) {
       console.error('Failed to fetch orders:', error)

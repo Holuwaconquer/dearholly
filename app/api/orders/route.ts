@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       return unauthorizedResponse()
     }
 
-    const { items, shippingAddress, paymentMethod, notes } = await request.json()
+    const { items, shippingAddress, paymentMethod, notes, paymentProof } = await request.json()
 
     // Validation
     if (!items || items.length === 0) {
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       return badRequestResponse('Shipping address is required')
     }
 
-    if (!paymentMethod || !['korapay'].includes(paymentMethod)) {
+    if (!paymentMethod || !['korapay', 'manual'].includes(paymentMethod)) {
       return badRequestResponse('Invalid payment method')
     }
 
@@ -78,25 +78,32 @@ export async function POST(request: NextRequest) {
     }
 
 
+    // Normalize shipping and item props to meet schema
+    const shippingFullName = shippingAddress.fullName || `${shippingAddress.firstName || ''} ${shippingAddress.lastName || ''}`.trim()
+    const normalizedShippingAddress = {
+      ...shippingAddress,
+      fullName: shippingFullName || shippingAddress.recipient || '',
+      postalCode: shippingAddress.postalCode || shippingAddress.zip || '',
+    }
+
+    const validatedItemsWithFallback = validatedItems.map((item) => ({
+      ...item,
+      size: item.size || '',
+      color: item.color || ''
+    }))
+
     // Create order
     const order = await Order.create({
       userId: user._id,
-      items: validatedItems,
+      items: validatedItemsWithFallback,
       totalPrice,
       totalQuantity,
       status: 'pending',
-      paymentStatus: 'pending',
+      paymentStatus: paymentMethod === 'korapay' ? 'pending' : 'pending',
       paymentMethod,
-      shippingAddress,
-      notes: notes || '',
+      paymentProof: paymentProof || null,
+      shippingAddress: normalizedShippingAddress,
     })
-
-    // reduce product stock
-    for (const item of validatedItems) {
-      await Product.findByIdAndUpdate(item.productId, {
-        $inc: { stock: -item.quantity },
-      })
-    }
 
     // Send confirmation email
     try {
@@ -126,7 +133,7 @@ export async function POST(request: NextRequest) {
       },
       'Order created successfully',
       201
-    )
+    );
   } catch (error) {
     console.error('Create order error:', error)
     return errorResponse('Failed to create order', 500)

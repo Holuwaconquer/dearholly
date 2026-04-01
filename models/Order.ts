@@ -5,8 +5,8 @@ export interface IOrderItem {
   productName: string
   price: number
   quantity: number
-  size: string
-  color: string
+  size?: string
+  color?: string
 }
 
 export interface IOrder extends Document {
@@ -16,8 +16,9 @@ export interface IOrder extends Document {
   totalQuantity: number
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
   paymentStatus: 'pending' | 'completed' | 'failed'
-  paymentMethod: 'korapay'
+  paymentMethod: 'korapay' | 'manual'
   korapayReference?: string
+  paymentProof?: string
   shippingAddress: {
     fullName: string
     phone: string
@@ -53,11 +54,13 @@ const orderItemSchema = new Schema<IOrderItem>({
   },
   size: {
     type: String,
-    required: true,
+    required: false,
+    default: ''
   },
   color: {
     type: String,
-    required: true,
+    required: false,
+    default: ''
   },
 })
 
@@ -95,37 +98,47 @@ const orderSchema = new Schema<IOrder>(
     },
     paymentMethod: {
       type: String,
-      enum: ['korapay'],
+      enum: ['korapay', 'manual'],
       required: true,
     },
     korapayReference: {
       type: String,
       default: null,
     },
+    paymentProof: {
+      type: String,
+      default: null,
+    },
     shippingAddress: {
       fullName: {
         type: String,
-        required: true,
+        required: false,
+        default: '',
       },
       phone: {
         type: String,
-        required: true,
+        required: false,
+        default: '',
       },
       address: {
         type: String,
-        required: true,
+        required: false,
+        default: '',
       },
       city: {
         type: String,
-        required: true,
+        required: false,
+        default: '',
       },
       state: {
         type: String,
-        required: true,
+        required: false,
+        default: '',
       },
       postalCode: {
         type: String,
-        required: true,
+        required: false,
+        default: '',
       },
       country: {
         type: String,

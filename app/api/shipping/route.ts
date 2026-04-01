@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { type, recipient, address, city, state, zip, country, phone, isDefault } = body
 
-    if (!type || !recipient || !address || !city || !state || !zip || !phone) {
+    if (!type || !recipient || !address || !city || !state || !phone) {
       return errorResponse('Missing required fields', 400)
     }
 

@@ -30,6 +30,8 @@ export default function EditProductPage() {
   const [activeTab, setActiveTab] = useState('basic')
   const [saving, setSaving] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [loadingProduct, setLoadingProduct] = useState(false)
+  const [productNotFound, setProductNotFound] = useState(false)
   const [images, setImages] = useState<string[]>([])
   const [thumbnailIndex, setThumbnailIndex] = useState(0)
   const [colors, setColors] = useState<string[]>([])
@@ -86,6 +88,8 @@ export default function EditProductPage() {
 
   const fetchProduct = async () => {
     if (!token || !slug) return
+    setLoadingProduct(true)
+    setProductNotFound(false)
     try {
       const res = await fetch(`/api/admin/products?slug=${slug}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -111,9 +115,14 @@ export default function EditProductPage() {
         setImages(p.images || [])
         setColors(p.colors || [])
         setVariants(p.variants || [{ size: 'S', price: '', stock: '' }])
+      } else {
+        setProductNotFound(true)
       }
     } catch (err) {
       console.error('Error fetching product', err)
+      setProductNotFound(true)
+    } finally {
+      setLoadingProduct(false)
     }
   }
 
@@ -223,6 +232,30 @@ export default function EditProductPage() {
   }
 
   if (!mounted) return null
+
+  if (!slug) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl font-medium text-gray-700">Invalid product link. Please open a product from the products list.</p>
+      </div>
+    )
+  }
+
+  if (loadingProduct) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-12 w-12 border-4 border-emerald-300 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (productNotFound) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl font-medium text-gray-700">Product not found. Check that the slug is valid.</p>
+      </div>
+    )
+  }
 
   return (
     <motion.div
